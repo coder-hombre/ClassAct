@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    container_name: classact-web
+    command: ["classact", "serve"]
+    ports:
+      - "${CLASSACT_PORT:-6006}:${CLASSACT_PORT:-6006}"
+    volumes:
+      - classact-data:/data
+    environment:
+      - CLASSACT_DB=/data/classact.db
+      - CLASSACT_PORT=${CLASSACT_PORT:-6006}
+    restart: unless-stopped
+
+  scraper:
+    build: .
+    container_name: classact-scraper
+    user: root
+    entrypoint: ["/bin/sh", "/usr/local/bin/scraper-cron.sh"]
+    volumes:
+      - classact-data:/data
+    environment:
+      - CLASSACT_DB=/data/classact.db
+      - SCRAPE_SCHEDULE=${SCRAPE_SCHEDULE:-0 3 * * *}
+    restart: unless-stopped
+
+volumes:
+  classact-data:
